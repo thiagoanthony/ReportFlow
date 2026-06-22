@@ -7,9 +7,7 @@ const anthropic = new Anthropic({
 type ReportMetrics = {
   spend: number;
   leads: number;
-  revenue: number;
   cpl: number;
-  roas: number;
 };
 
 export async function generateAiAnalysis(
@@ -23,16 +21,15 @@ export async function generateAiAnalysis(
 Cliente: ${clientName}
 Periodo: ${periodStart.toLocaleDateString("pt-BR")} a ${periodEnd.toLocaleDateString("pt-BR")}
 
-Metricas do periodo:
+Metricas reais do periodo (extraidas diretamente das plataformas de anuncios):
 - Investimento total: R$ ${metrics.spend.toLocaleString("pt-BR")}
 - Leads gerados: ${metrics.leads}
-- Receita: R$ ${metrics.revenue.toLocaleString("pt-BR")}
 - CPL (Custo por Lead): R$ ${metrics.cpl}
-- ROAS (Retorno sobre investimento em anuncios): ${metrics.roas}x
 
 Escreva uma analise curta (3 a 5 frases) em portugues do Brasil, em tom profissional e direto,
-destacando o desempenho do periodo e dando 1 ou 2 recomendacoes praticas para o proximo periodo.
-Nao use markdown, apenas texto corrido.`;
+destacando o desempenho do periodo com base apenas nessas metricas e dando 1 ou 2 recomendacoes
+praticas para o proximo periodo. Nao mencione receita, faturamento ou ROAS, pois esses dados
+nao estao disponiveis neste relatorio. Nao use markdown, apenas texto corrido.`;
 
   try {
     const response = await anthropic.messages.create({

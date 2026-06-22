@@ -102,7 +102,7 @@ export async function generateReportAction(formData: FormData) {
   const revenue = spend * 4.3;
   const cpl = leads > 0 ? Math.round(spend / leads) : 0;
   const roas = 4.3;
-  const aiAnalysis = await generateAiAnalysis(client.name, periodStart, periodEnd, { spend, leads, revenue, cpl, roas });
+  const aiAnalysis = await generateAiAnalysis(client.name, periodStart, periodEnd, { spend, leads, cpl });
 
   await prisma.report.create({
     data: {
@@ -131,4 +131,5 @@ export async function generateReportAction(formData: FormData) {
 export async function loginWithGoogleAction() {
   await signIn("google", { redirectTo: "/dashboard" });
 }
+
 
