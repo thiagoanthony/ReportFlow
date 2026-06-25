@@ -7,8 +7,8 @@ import { signIn, signOut } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { requireAgency } from "@/lib/app-data";
 import { generateAiAnalysis } from "@/lib/ai";
-import { decryptToken } from "@/lib/integrations/security";
-import { getGoogleAdsMetrics } from "@/lib/integrations/google";
+import { decryptToken, encryptToken } from "@/lib/integrations/security";
+import { getGoogleAdsMetrics, refreshGoogleAccessToken } from "@/lib/integrations/google";
 import { getMetaAdsMetrics } from "@/lib/integrations/meta";
 
 
@@ -83,8 +83,27 @@ export async function generateReportAction(formData: FormData) {
   let leads = 0;
 
   for (const integration of activeIntegrations) {
-    const accessToken = decryptToken(integration.accessToken);
     try {
+      let accessToken = decryptToken(integration.accessToken);
+
+      if (integration.platform === "GOOGLE" && integration.refreshToken) {
+        try {
+          const refreshed = await refreshGoogleAccessToken(decryptToken(integration.refreshToken));
+          accessToken = refreshed.access_token!;
+          await prisma.integration.update({
+            where: { id: integration.id },
+            data: {
+              accessToken: encryptToken(accessToken),
+              expiresAt: refreshed.expires_in
+                ? new Date(Date.now() + refreshed.expires_in * 1000)
+                : undefined,
+            },
+          });
+        } catch (refreshError) {
+          console.error(`[report] Erro ao renovar token do Google para integracao ${integration.id}:`, refreshError);
+        }
+      }
+
       const metrics =
         integration.platform === "GOOGLE"
           ? await getGoogleAdsMetrics(accessToken, integration.accountId, periodStart, periodEnd)
@@ -131,5 +150,8 @@ export async function generateReportAction(formData: FormData) {
 export async function loginWithGoogleAction() {
   await signIn("google", { redirectTo: "/dashboard" });
 }
+
+
+
 
 

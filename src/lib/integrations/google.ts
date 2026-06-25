@@ -122,3 +122,23 @@ export async function getGoogleAdsMetrics(
     leads: Math.round(conversions),
   };
 }
+
+export async function refreshGoogleAccessToken(refreshToken: string) {
+  const config = googleConfig();
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      refresh_token: refreshToken,
+      client_id: config.clientId,
+      client_secret: config.clientSecret,
+      grant_type: "refresh_token",
+    }),
+    cache: "no-store",
+  });
+  const data = (await response.json()) as GoogleTokenResponse;
+  if (!response.ok || !data.access_token) {
+    throw new Error(data.error_description ?? data.error ?? "Falha ao renovar token do Google.");
+  }
+  return data;
+}
