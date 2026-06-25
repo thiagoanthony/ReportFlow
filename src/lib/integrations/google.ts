@@ -1,4 +1,4 @@
-import { googleConfig } from "@/lib/integrations/config";
+﻿import { googleConfig } from "@/lib/integrations/config";
 
 type GoogleTokenResponse = {
   access_token?: string;
@@ -84,8 +84,8 @@ export async function getGoogleAdsMetrics(
 
   const query = `
     SELECT metrics.cost_micros, metrics.conversions
-    FROM customer
-    WHERE segments.date BETWEEN ''${fmt(periodStart)}'' AND ''${fmt(periodEnd)}''
+    FROM campaign
+    WHERE segments.date BETWEEN '${fmt(periodStart)}' AND '${fmt(periodEnd)}'
   `;
 
   const response = await fetch(
@@ -142,3 +142,5 @@ export async function refreshGoogleAccessToken(refreshToken: string) {
   }
   return data;
 }
+
+
