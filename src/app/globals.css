@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
   --bg: #f7f6f2;
@@ -246,8 +246,8 @@ textarea {
   min-height: 26px;
   padding: 0 10px;
   border-radius: 999px;
-  background: #e8f0ea;
-  color: var(--green);
+  background: var(--brand);
+  color: #ffffff;
   font-size: 12px;
   font-weight: 800;
 }
@@ -395,4 +395,21 @@ textarea {
   .integration-actions {
     grid-template-columns: 1fr;
   }
+}
+
+.client-name-link {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.client-name-link:hover {
+  color: var(--brand);
+}
+
+.table td p.muted {
+  margin-top: 4px;
+  font-size: 13px;
 }
