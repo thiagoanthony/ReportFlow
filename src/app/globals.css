@@ -1,15 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
-  --bg: #f5f7fb;
+  --bg: #f7f6f2;
   --surface: #ffffff;
-  --surface-2: #eef2f7;
-  --text: #111827;
-  --muted: #667085;
-  --line: #d8dee8;
-  --brand: #2563eb;
-  --brand-dark: #1d4ed8;
-  --green: #079455;
+  --surface-2: #f0eee7;
+  --text: #14191a;
+  --muted: #6b6f76;
+  --line: #e2dfd4;
+  --brand: #2d6a4f;
+  --brand-dark: #1f4d3a;
+  --accent: #e0622f;
+  --accent-soft: #fbe9e1;
+  --green: #2d6a4f;
   --amber: #b54708;
   --red: #c01048;
+  --ink: #0b1220;
 }
 
 * {
@@ -52,7 +57,7 @@ textarea {
   flex-direction: column;
   gap: 24px;
   padding: 24px;
-  background: #101828;
+  background: var(--ink);
   color: #ffffff;
 }
 
@@ -60,8 +65,10 @@ textarea {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 18px;
-  font-weight: 800;
+  font-family: "Space Grotesk", Inter, sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   text-decoration: none;
 }
 
@@ -71,8 +78,9 @@ textarea {
   width: 38px;
   height: 38px;
   border-radius: 8px;
-  background: var(--brand);
-  font-weight: 900;
+  background: var(--accent);
+  font-family: "Space Grotesk", Inter, sans-serif;
+  font-weight: 700;
 }
 
 .sidebar nav {
@@ -89,7 +97,7 @@ textarea {
   border-radius: 8px;
   border: 0;
   background: transparent;
-  color: #cbd5e1;
+  color: #aab3ad;
   text-decoration: none;
   cursor: pointer;
 }
@@ -104,7 +112,7 @@ textarea {
   margin-top: auto;
   display: grid;
   gap: 12px;
-  color: #cbd5e1;
+  color: #aab3ad;
   font-size: 13px;
 }
 
@@ -128,8 +136,10 @@ textarea {
 .page-header h1,
 .login-card h1 {
   margin: 0 0 6px;
-  font-size: 28px;
-  letter-spacing: 0;
+  font-family: "Space Grotesk", Inter, sans-serif;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .page-header p,
@@ -152,6 +162,7 @@ textarea {
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
+  transition: background-color 0.15s ease;
 }
 
 .button:hover {
@@ -184,7 +195,7 @@ textarea {
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 20px;
 }
 
@@ -195,13 +206,18 @@ textarea {
 
 .metric span {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .metric strong {
-  font-size: 30px;
+  font-family: "Space Grotesk", Inter, sans-serif;
+  font-size: 34px;
+  font-weight: 600;
   line-height: 1;
+  color: var(--accent);
 }
 
 .table {
@@ -221,6 +237,7 @@ textarea {
   color: var(--muted);
   font-size: 12px;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .status {
@@ -229,14 +246,14 @@ textarea {
   min-height: 26px;
   padding: 0 10px;
   border-radius: 999px;
-  background: #ecfdf3;
+  background: #e8f0ea;
   color: var(--green);
   font-size: 12px;
   font-weight: 800;
 }
 
 .status.inactive {
-  background: #fff4ed;
+  background: var(--accent-soft);
   color: var(--amber);
 }
 
@@ -268,7 +285,7 @@ textarea {
 .form input:focus,
 .form select:focus,
 .form textarea:focus {
-  outline: 3px solid rgba(37, 99, 235, 0.16);
+  outline: 3px solid rgba(45, 106, 79, 0.16);
   border-color: var(--brand);
 }
 
@@ -278,7 +295,8 @@ textarea {
   place-items: center;
   padding: 24px;
   background:
-    linear-gradient(135deg, rgba(37, 99, 235, 0.16), transparent 34%),
+    radial-gradient(circle at 18% 20%, rgba(224, 98, 47, 0.14), transparent 38%),
+    radial-gradient(circle at 82% 78%, rgba(45, 106, 79, 0.14), transparent 42%),
     var(--bg);
 }
 
@@ -286,9 +304,9 @@ textarea {
   width: min(440px, 100%);
   background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 32px;
-  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 24px 80px rgba(11, 18, 32, 0.12);
 }
 
 .empty {
@@ -345,15 +363,15 @@ textarea {
   margin-bottom: 16px;
   padding: 12px 14px;
   border: 1px solid;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 700;
 }
 
 .notice.success {
-  border-color: #86efac;
-  background: #f0fdf4;
-  color: #166534;
+  border-color: #a8d1b8;
+  background: #eaf4ee;
+  color: var(--brand-dark);
 }
 
 .notice.error {
