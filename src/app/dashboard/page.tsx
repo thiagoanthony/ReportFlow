@@ -101,7 +101,7 @@ export default async function DashboardPage() {
                 {clients.map((client) => (
                   <tr key={client.id}>
                     <td>
-                      <Link href={`/clients/${client.id}`} style={{ fontWeight: 800, textDecoration: "none" }}>
+                      <Link href={`/clients/${client.id}`} className="client-name-link">
                         {client.name}
                       </Link>
                       <p className="muted">
@@ -147,3 +147,4 @@ export default async function DashboardPage() {
     </AppShell>
   );
 }
+
