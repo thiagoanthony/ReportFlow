@@ -29,3 +29,12 @@
     "typescript": "^5"
   }
 }
+    "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "postinstall": "prisma generate",
+    "db:setup": "python scripts/setup_db.py",
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate"
+  },
