@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { AppShell } from "@/app/app-shell";
 import { prisma } from "@/lib/db/prisma";
 import { formatCurrency, formatDate, requireAgency } from "@/lib/app-data";
@@ -52,7 +52,7 @@ export default async function DashboardPage() {
       <div className="page-header">
         <div>
           <h1>Dashboard</h1>
-          <p>Visao geral de clientes, integracoes e relatorios.</p>
+          <p>Visão geral de clientes, integrações e relatórios.</p>
         </div>
         <Link className="button" href="/clients/new">Novo cliente</Link>
       </div>
@@ -63,7 +63,7 @@ export default async function DashboardPage() {
           <strong>{clients.filter((client) => client.active).length}</strong>
         </article>
         <article className="card metric">
-          <span>Receita atribuida</span>
+          <span>Receita atribuída</span>
           <strong>{formatCurrency(totals.revenue)}</strong>
         </article>
         <article className="card metric">
@@ -77,7 +77,7 @@ export default async function DashboardPage() {
           <div className="row-between" style={{ marginBottom: 12 }}>
             <div>
               <h2 style={{ margin: 0, fontSize: 18 }}>Clientes</h2>
-              <p className="muted">Contas prontas para gerar relatorios.</p>
+              <p className="muted">Contas prontas para gerar relatórios.</p>
             </div>
           </div>
 
@@ -93,7 +93,7 @@ export default async function DashboardPage() {
               <thead>
                 <tr>
                   <th>Cliente</th>
-                  <th>Integracoes</th>
+                  <th>Integrações</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -105,11 +105,17 @@ export default async function DashboardPage() {
                         {client.name}
                       </Link>
                       <p className="muted">
-                        {client.reports[0] ? `Ultimo relatorio em ${formatDate(client.reports[0].createdAt)}` : "Sem relatorios"}
+                        {client.reports[0]
+                          ? `Último relatório em ${formatDate(client.reports[0].createdAt)}`
+                          : "Sem relatórios"}
                       </p>
                     </td>
                     <td>{client.integrations.length}</td>
-                    <td><span className={client.active ? "status" : "status inactive"}>{client.active ? "Ativo" : "Pausado"}</span></td>
+                    <td>
+                      <span className={client.active ? "status" : "status inactive"}>
+                        {client.active ? "Ativo" : "Pausado"}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -118,16 +124,20 @@ export default async function DashboardPage() {
         </article>
 
         <article className="card">
-          <h2 style={{ margin: 0, fontSize: 18 }}>Relatorios recentes</h2>
-          <p className="muted" style={{ marginBottom: 12 }}>Analises prontas para apresentar ao cliente.</p>
+          <h2 style={{ margin: 0, fontSize: 18 }}>Relatórios recentes</h2>
+          <p className="muted" style={{ marginBottom: 12 }}>
+            Análises prontas para apresentar ao cliente.
+          </p>
           {reports.length === 0 ? (
-            <div className="empty"><p>Gere um relatorio dentro da pagina de um cliente.</p></div>
+            <div className="empty">
+              <p>Gere um relatório dentro da página de um cliente.</p>
+            </div>
           ) : (
             <table className="table">
               <thead>
                 <tr>
                   <th>Cliente</th>
-                  <th>Periodo</th>
+                  <th>Período</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -135,7 +145,9 @@ export default async function DashboardPage() {
                 {reports.map((report) => (
                   <tr key={report.id}>
                     <td>{report.client.name}</td>
-                    <td>{formatDate(report.periodStart)} - {formatDate(report.periodEnd)}</td>
+                    <td>
+                      {formatDate(report.periodStart)} — {formatDate(report.periodEnd)}
+                    </td>
                     <td><span className="status">{report.status}</span></td>
                   </tr>
                 ))}
@@ -147,4 +159,3 @@ export default async function DashboardPage() {
     </AppShell>
   );
 }
-
