@@ -7,7 +7,7 @@ const PLANS = [
   {
     name: "Starter",
     price: 197,
-    priceId: "price_1ToCzs12ZcFkVy759ppfiXcS",
+    priceId: "price_1Tpt2N1p53MueLvpjMeQBm8B",
     clients: 5,
     popular: false,
     features: [
@@ -21,7 +21,7 @@ const PLANS = [
   {
     name: "Pro",
     price: 397,
-    priceId: "price_1ToD0m12ZcFkVy75gNOAhwwN",
+    priceId: "price_1Tpt2P1p53MueLvpHmRhCwpW",
     clients: 20,
     popular: true,
     features: [
@@ -37,7 +37,7 @@ const PLANS = [
   {
     name: "Agency",
     price: 797,
-    priceId: "price_1ToD1512ZcFkVy75UdnQpp5m",
+    priceId: "price_1Tpt2Q1p53MueLvpNhrnawu8",
     clients: 999,
     popular: false,
     features: [
