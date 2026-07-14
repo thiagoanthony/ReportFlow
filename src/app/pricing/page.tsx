@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
 
 const PLANS = [
   {
@@ -57,8 +56,10 @@ const PLANS = [
 
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
-  const searchParams = useSearchParams();
-  const canceled = searchParams.get("canceled") === "true";
+  const [canceled, setCanceled] = useState(false);
+useEffect(() => {
+  setCanceled(new URLSearchParams(window.location.search).get("canceled") === "true");
+}, []);
 
   async function handleCheckout(priceId: string, planName: string) {
     setLoading(planName);
