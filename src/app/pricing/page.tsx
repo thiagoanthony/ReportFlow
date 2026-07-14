@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 const PLANS = [
   {
@@ -56,6 +57,8 @@ const PLANS = [
 
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const canceled = searchParams.get("canceled") === "true";
 
   async function handleCheckout(priceId: string, planName: string) {
     setLoading(planName);
@@ -89,6 +92,25 @@ export default function PricingPage() {
         </Link>
         <Link href="/login" style={{ color: "#888", textDecoration: "none", fontSize: 14 }}>Já tenho conta →</Link>
       </nav>
+
+      {/* Banner de cancelamento */}
+      {canceled && (
+        <div style={{
+          maxWidth: 760, margin: "20px auto 0", padding: "0 32px",
+        }}>
+          <div style={{
+            background: "#1a0a0a", border: "1px solid #7f1d1d",
+            borderRadius: 10, padding: "14px 20px",
+            display: "flex", alignItems: "center", gap: 12,
+          }}>
+            <span style={{ fontSize: 18 }}>✓</span>
+            <p style={{ color: "#fca5a5", margin: 0, fontSize: 14, fontWeight: 500 }}>
+              Sua assinatura foi cancelada. Você mantém acesso até o fim do período pago.
+              Escolha um plano abaixo para continuar quando quiser.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div style={{ textAlign: "center", padding: "56px 32px 40px" }}>
