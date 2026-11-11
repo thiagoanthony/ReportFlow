@@ -1,68 +1,170 @@
-﻿import Link from "next/link";
+import Link from "next/link";
+
+const steps = [
+  ["01", "Conecte as contas", "Autorize a leitura dos dados de Google Ads dos seus clientes em um clique. Meta Ads está a caminho."],
+  ["02", "Escolha o período", "Use um atalho (últimos 7 ou 30 dias, mês passado) ou escolha as datas. A IA analisa investimento, leads e custo por lead."],
+  ["03", "Envie ao cliente", "Relatório com análise e recomendações pronto para baixar em PDF e enviar ao seu cliente."],
+];
+
+const without = [
+  "Exportar CSV de cada plataforma cliente por cliente",
+  "Copiar números para planilha e conferir na mão",
+  "Escrever análise do zero em cada relatório",
+  "Horas todo mês só no fechamento dos relatórios",
+];
+
+const withRF = [
+  "Contas conectadas uma única vez, dados sempre atualizados",
+  "Métricas do Google Ads de todos os clientes no mesmo painel (Meta Ads em breve)",
+  "Análise e recomendações escritas pela IA sobre os seus dados",
+  "Relatório de cada cliente em poucos minutos, em PDF",
+];
+
+const metrics = [
+  ["Investimento", "R$ 48.230"],
+  ["Leads", "1.284"],
+  ["Custo por lead", "R$ 37,56"],
+];
 
 export default function Home() {
   return (
-    <div style={{ minHeight: "100vh", background: "#0f0f0f", color: "#fff", fontFamily: "system-ui, sans-serif" }}>
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 32px", borderBottom: "1px solid #1a1a1a", maxWidth: 1100, margin: "0 auto" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ width: 32, height: 32, background: "#2d6a4f", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14 }}>RF</span>
-          <span style={{ fontWeight: 600, fontSize: 18 }}>ReportFlow</span>
+    <main className="landing">
+      <header className="landing-nav">
+        <div className="landing-container nav-inner">
+          <Link href="/" className="logo">
+            <span className="logo-mark">RF</span>
+            <span>ReportFlow</span>
+          </Link>
+          <nav>
+            <Link href="/login" className="nav-login">Entrar</Link>
+            <Link href="/login" className="landing-btn landing-btn-small">Começar grátis</Link>
+          </nav>
         </div>
-        <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-          <Link href="/login" style={{ color: "#888", textDecoration: "none", fontSize: 14 }}>Entrar</Link>
-          <Link href="/pricing" style={{ background: "#2d6a4f", color: "#fff", padding: "8px 18px", borderRadius: 8, textDecoration: "none", fontSize: 14, fontWeight: 500 }}>Comecar gratis</Link>
-        </div>
-      </nav>
-      <section style={{ maxWidth: 1100, margin: "0 auto", padding: "80px 32px 64px", textAlign: "center" }}>
-        <h1 style={{ fontSize: "clamp(36px, 6vw, 68px)", fontWeight: 700, lineHeight: 1.1, marginBottom: 20 }}>
-          Chega de perder horas<br />
-          <span style={{ color: "#4ade80" }}>montando relatorios</span>
-        </h1>
-        <p style={{ color: "#888", fontSize: 20, maxWidth: 600, margin: "0 auto 36px", lineHeight: 1.6 }}>
-          Conecte Google Ads e Meta Ads dos seus clientes e gere relatorios profissionais com analise de IA em menos de 1 minuto.
-        </p>
-        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <Link href="/pricing" style={{ background: "#2d6a4f", color: "#fff", padding: "14px 32px", borderRadius: 12, textDecoration: "none", fontWeight: 600, fontSize: 16 }}>Comecar gratis - 14 dias</Link>
-          <Link href="/login" style={{ border: "1px solid #2a2a2a", color: "#ccc", padding: "14px 32px", borderRadius: 12, textDecoration: "none", fontWeight: 600, fontSize: 16 }}>Ja tenho conta</Link>
+      </header>
+
+      <section className="landing-hero">
+        <div className="hero-grid" />
+        <div className="landing-container hero-content">
+          <span className="eyebrow"><span className="pulse-dot" /> Plataforma de relatórios com IA</span>
+          <h1>Chega de perder horas <span>montando relatórios</span></h1>
+          <p className="hero-description">
+            Conecte o Google Ads dos seus clientes (Meta Ads em breve) e gere relatórios profissionais com
+            análise de IA em minutos.
+          </p>
+          <div className="hero-actions">
+            <Link href="/login" className="landing-btn">Criar conta grátis — 14 dias <b>→</b></Link>
+            <Link href="/pricing" className="landing-btn outline">Ver planos</Link>
+          </div>
+          <p className="small-note">Sem cartão de crédito. Cancele quando quiser.</p>
+
+          <div className="hero-stats">
+            <div><strong>Minutos</strong><span>por relatório</span></div>
+            <div><strong>IA</strong><span>análise em português</span></div>
+            <div><strong>PDF</strong><span>pronto para enviar</span></div>
+          </div>
+
+          <ReportMockup />
         </div>
       </section>
-      <div style={{ borderTop: "1px solid #1a1a1a", borderBottom: "1px solid #1a1a1a", padding: "24px 32px", textAlign: "center" }}>
-        <div style={{ display: "flex", justifyContent: "center", gap: 40, flexWrap: "wrap" }}>
-          {["Google Ads", "Meta Ads", "Google Analytics", "IA Generativa"].map(p => (
-            <span key={p} style={{ color: "#777", fontWeight: 500, fontSize: 14 }}>{p}</span>
-          ))}
-        </div>
-      </div>
-      <section style={{ maxWidth: 1100, margin: "0 auto", padding: "72px 32px" }}>
-        <h2 style={{ fontSize: 36, fontWeight: 700, textAlign: "center", marginBottom: 48 }}>Como funciona</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
-          {[
-            { n: "01", title: "Conecte as contas", desc: "Autorize o ReportFlow a ler os dados de Google Ads e Meta Ads dos seus clientes em 1 clique." },
-            { n: "02", title: "Escolha o periodo", desc: "Selecione as datas e clique em Gerar Relatorio. A IA analisa todos os dados automaticamente." },
-            { n: "03", title: "Envie ao cliente", desc: "Relatorio completo com insights e recomendacoes gerado em segundos. Pronto para enviar." },
-          ].map(s => (
-            <div key={s.n} style={{ background: "#141414", border: "1px solid #1e1e1e", borderRadius: 16, padding: 28 }}>
-              <div style={{ color: "#4ade80", fontSize: 36, fontWeight: 700, marginBottom: 12 }}>{s.n}</div>
-              <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{s.title}</h3>
-              <p style={{ color: "#888", lineHeight: 1.6, fontSize: 14, margin: 0 }}>{s.desc}</p>
+
+      <section className="landing-section">
+        <SectionHeading eyebrow="Como funciona" title="Três passos. Zero planilha."
+          text="Do acesso às contas ao PDF pronto para enviar ao cliente, sem planilha." />
+        <div className="steps-grid">
+          {steps.map(([n, title, text]) => (
+            <div className="feature-card" key={n}>
+              <div className="step-number">{n}</div>
+              <div className="feature-icon">✦</div>
+              <h3>{title}</h3>
+              <p>{text}</p>
             </div>
           ))}
         </div>
       </section>
-      <section style={{ background: "#0d1f16", borderTop: "1px solid #1a3028", borderBottom: "1px solid #1a3028", padding: "72px 32px", textAlign: "center" }}>
-        <h2 style={{ fontSize: 36, fontWeight: 700, marginBottom: 12 }}>Pronto para economizar horas todo mes?</h2>
-        <p style={{ color: "#888", fontSize: 16, marginBottom: 28 }}>Comece gratis por 14 dias. Sem cartao de credito.</p>
-        <Link href="/pricing" style={{ background: "#2d6a4f", color: "#fff", padding: "14px 36px", borderRadius: 12, textDecoration: "none", fontWeight: 600, fontSize: 16 }}>
-          Criar conta gratis
-        </Link>
-      </section>
-      <footer style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-        <span style={{ color: "#555", fontSize: 13 }}>ReportFlow 2026</span>
-        <div style={{ display: "flex", gap: 20 }}>
-          <Link href="/pricing" style={{ color: "#555", textDecoration: "none", fontSize: 13 }}>Precos</Link>
-          <Link href="/login" style={{ color: "#555", textDecoration: "none", fontSize: 13 }}>Entrar</Link>
+
+      <section className="comparison-section">
+        <div className="landing-container landing-section">
+          <SectionHeading eyebrow="Comparativo" title="Seu fechamento de mês, antes e depois" />
+          <div className="comparison-grid">
+            <div className="compare-card">
+              <p className="compare-label">Sem ReportFlow</p>
+              <ul>{without.map(t => <li key={t}><span className="x-icon">×</span>{t}</li>)}</ul>
+            </div>
+            <div className="compare-card positive">
+              <p className="compare-label">Com ReportFlow</p>
+              <ul>{withRF.map(t => <li key={t}><span className="check-icon">✓</span>{t}</li>)}</ul>
+            </div>
+          </div>
         </div>
+      </section>
+
+      <section className="landing-container cta-wrap">
+        <div className="final-cta">
+          <div className="cta-glow" />
+          <h2>Pronto para economizar horas todo mês?</h2>
+          <p>Comece grátis por 14 dias. Sem cartão de crédito, sem fidelidade.</p>
+          <Link href="/login" className="landing-btn">Criar conta grátis →</Link>
+        </div>
+      </section>
+
+      <footer className="landing-footer">
+        <div className="landing-container footer-grid">
+          <div>
+            <Link href="/" className="logo"><span className="logo-mark">RF</span><span>ReportFlow</span></Link>
+            <p>Relatórios automáticos com análise de IA para agências de marketing digital.</p>
+          </div>
+          <div><h4>Produto</h4><Link href="/">Recursos</Link><Link href="/pricing">Preços</Link><Link href="/login">Painel</Link></div>
+          <div><h4>Legal</h4><Link href="/termos">Termos de uso</Link><Link href="/privacidade">Política de privacidade</Link></div>
+          <div><h4>Conta</h4><Link href="/login">Entrar</Link><Link href="/login">Criar conta</Link></div>
+        </div>
+        <div className="footer-bottom">© 2026 ReportFlow. Todos os direitos reservados. Feito para agências brasileiras.</div>
       </footer>
+    </main>
+  );
+}
+
+function SectionHeading({ eyebrow, title, text }: { eyebrow: string; title: string; text?: string }) {
+  return (
+    <div className="section-heading">
+      <p>{eyebrow}</p>
+      <h2>{title}</h2>
+      {text && <span>{text}</span>}
+    </div>
+  );
+}
+
+function ReportMockup() {
+  const google = [42, 55, 61, 70, 82, 96];
+  const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"];
+  return (
+    <div className="report-mockup">
+      <div className="mockup-head">
+        <div><small>RELATÓRIO MENSAL</small><h3>Cliente: Loja Verde • Junho</h3></div>
+        <span>Exemplo ilustrativo</span>
+      </div>
+      <div className="metrics-grid">
+        {metrics.map(([label, value]) => (
+          <div className="metric-box" key={label}><small>{label}</small><strong>{value}</strong></div>
+        ))}
+      </div>
+      <div className="mockup-lower">
+        <div className="chart-box">
+          <div className="chart-title"><b>Leads por mês</b><small>● Google Ads</small></div>
+          <div className="bars">
+            {months.map((m, i) => <div className="bar-group" key={m}>
+              <div className="bar-area"><i style={{height: `${google[i]}%`}}/></div><small>{m}</small>
+            </div>)}
+          </div>
+        </div>
+        <div className="insight-box">
+          <b>✦ Análise da IA</b>
+          <ul>
+            <li>No período, o investimento de R$ 48.230 gerou 1.284 leads, com custo por lead de R$ 37,56.</li>
+            <li>Recomendação: concentrar verba nas campanhas com menor custo por lead.</li>
+            <li>Recomendação: testar novos criativos nas campanhas com volume estável e CPL acima da média.</li>
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }

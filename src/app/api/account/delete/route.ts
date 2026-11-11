@@ -31,7 +31,9 @@ export async function POST(req: NextRequest) {
     // Deleta todos os dados do usuário (cascade no Prisma)
     await prisma.user.delete({ where: { id: user.id } });
 
-    // Redireciona para home após logout
+    // Encerra a sessão: sem isso o cookie continua válido e a conta seria recriada no próximo acesso.
+    await signOut({ redirect: false });
+
     return NextResponse.redirect(new URL("/?deleted=true", req.url));
   } catch (err) {
     console.error("Account delete error:", err);

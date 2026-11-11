@@ -1,26 +1,28 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/app/app-shell";
-import {
-  disconnectIntegrationAction,
-  generateReportAction,
-  toggleClientAction,
-} from "@/app/actions";
+import { disconnectIntegrationAction, toggleClientAction } from "@/app/actions";
 import { prisma } from "@/lib/db/prisma";
-import { formatCurrency, formatDate, requireAgency } from "@/lib/app-data";
+import {
+  formatCurrency,
+  formatPeriodDate,
+  reportStatusClass,
+  reportStatusLabel,
+  requireAgency,
+} from "@/lib/app-data";
 import { integrationReadiness } from "@/lib/integrations/config";
+import { PERIOD_ERROR_MESSAGES, REPORT_ERROR_MESSAGES, todayIso } from "@/lib/report-period";
+import { ReportForm } from "./report-form";
 
 type ClientPageProps = {
   params: { id: string };
-  searchParams: { integration?: string; integrationError?: string };
+  searchParams: { integration?: string; integrationError?: string; reportError?: string };
 };
 
 type ReportMetrics = {
   spend?: number;
-  revenue?: number;
   leads?: number;
   cpl?: number;
-  roas?: number;
 };
 
 function parseMetrics(data: string | null): ReportMetrics {
@@ -33,25 +35,25 @@ function MetricCard({ label, value, sub, icon, trend }: {
 }) {
   return (
     <div style={{
-      background: "#fff", border: "1px solid #e8eaed", borderRadius: 12,
+      background: "var(--surface)", border: "1px solid var(--border-2)", borderRadius: 12,
       padding: "20px 20px", display: "flex", flexDirection: "column", gap: 10,
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</span>
-        <span style={{ fontSize: 20, color: "#2d6a4f" }}>{icon}</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-2)", textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</span>
+        <span style={{ fontSize: 20, color: "var(--brand-light)" }}>{icon}</span>
       </div>
-      <div style={{ fontSize: 30, fontWeight: 700, color: "#111", lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 30, fontWeight: 700, color: "var(--text)", lineHeight: 1 }}>{value}</div>
       {trend && (
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{
-            background: trend.up ? "#d1fae5" : "#fee2e2",
-            color: trend.up ? "#065f46" : "#991b1b",
+            background: trend.up ? "var(--green-soft)" : "var(--red-soft)",
+            color: trend.up ? "var(--green)" : "var(--red)",
             padding: "2px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700,
           }}>{trend.value}</span>
-          {sub && <span style={{ fontSize: 11, color: "#9ca3af" }}>{sub}</span>}
+          {sub && <span style={{ fontSize: 11, color: "var(--text-2)" }}>{sub}</span>}
         </div>
       )}
-      {!trend && sub && <span style={{ fontSize: 12, color: "#9ca3af" }}>{sub}</span>}
+      {!trend && sub && <span style={{ fontSize: 12, color: "var(--text-2)" }}>{sub}</span>}
     </div>
   );
 }
@@ -59,6 +61,8 @@ function MetricCard({ label, value, sub, icon, trend }: {
 export default async function ClientPage({ params, searchParams }: ClientPageProps) {
   const { session, agency } = await requireAgency();
   const readiness = integrationReadiness();
+  // Meta Ads só é liberado quando META_ADS_ENABLED=true (a integração ainda está em validação).
+  const metaEnabled = readiness.meta && process.env.META_ADS_ENABLED === "true";
   const client = await prisma.client.findFirst({
     where: { id: params.id, agencyId: agency.id },
     include: {
@@ -67,6 +71,9 @@ export default async function ClientPage({ params, searchParams }: ClientPagePro
     },
   });
   if (!client) notFound();
+
+  const reportErrorMessages: Record<string, string> = { ...PERIOD_ERROR_MESSAGES, ...REPORT_ERROR_MESSAGES };
+  const reportErrorMessage = searchParams.reportError ? reportErrorMessages[searchParams.reportError] : undefined;
 
   const lastReport = client.reports[0];
   const metrics = parseMetrics(lastReport?.data ?? null);
@@ -87,8 +94,8 @@ export default async function ClientPage({ params, searchParams }: ClientPagePro
             {client.name.slice(0, 2).toUpperCase()}
           </div>
           <div>
-            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: "#111" }}>{client.name}</h1>
-            <p style={{ margin: 0, fontSize: 13, color: "#6b7280" }}>
+            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: "var(--text)" }}>{client.name}</h1>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--text-2)" }}>
               {client.active ? "● Cliente ativo" : "○ Cliente pausado"} · {agency.name}
             </p>
           </div>
@@ -119,44 +126,30 @@ export default async function ClientPage({ params, searchParams }: ClientPagePro
       {/* KPI Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12, marginBottom: 20 }}>
         <MetricCard label="Investimento" value={formatCurrency(Number(metrics.spend ?? 0))} icon="💰" sub="último relatório" />
-        <MetricCard label="Receita" value={formatCurrency(Number(metrics.revenue ?? 0))} icon="📈" sub="último relatório" />
-        <MetricCard label="ROAS" value={metrics.roas ? `${metrics.roas}x` : "—"} icon="🎯" sub="retorno sobre gasto" />
-        <MetricCard label="Leads totais" value={String(totalLeads)} icon="👥" sub={`${client.reports.length} relatórios`} />
-        <MetricCard label="CPL médio" value={formatCurrency(Number(metrics.cpl ?? 0))} icon="⚡" sub="custo por lead" />
+        <MetricCard label="Leads (último)" value={String(Number(metrics.leads ?? 0))} icon="👥" sub="último relatório" />
+        <MetricCard label="CPL" value={formatCurrency(Number(metrics.cpl ?? 0))} icon="⚡" sub="custo por lead, último relatório" />
+        <MetricCard label="Leads totais" value={String(totalLeads)} icon="📊" sub={`${client.reports.length} relatórios`} />
       </div>
 
       {/* Main grid */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
 
         {/* Gerar relatório */}
-        <div style={{ background: "#fff", border: "1px solid #e8eaed", borderRadius: 12, padding: 20 }}>
+        <div id="gerar-relatorio" style={{ background: "var(--surface)", border: "1px solid var(--border-2)", borderRadius: 12, padding: 20, scrollMarginTop: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
             <span style={{ fontSize: 16 }}>📊</span>
-            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#111" }}>Gerar relatório</h2>
+            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "var(--text)" }}>Gerar relatório</h2>
           </div>
-          <form className="form" action={generateReportAction}>
-            <input type="hidden" name="clientId" value={client.id} />
-            <label style={{ color: "#374151", fontSize: 13, fontWeight: 500 }}>
-              Início do período
-              <input name="periodStart" type="date" required style={{ marginTop: 6 }} />
-            </label>
-            <label style={{ color: "#374151", fontSize: 13, fontWeight: 500 }}>
-              Fim do período
-              <input name="periodEnd" type="date" required style={{ marginTop: 6 }} />
-            </label>
-            <button className="button" type="submit" style={{ width: "100%", marginTop: 4 }}>
-              Gerar relatório com IA
-            </button>
-          </form>
+          <ReportForm clientId={client.id} today={todayIso()} serverError={reportErrorMessage} />
         </div>
 
         {/* Conectar plataformas */}
-        <div style={{ background: "#fff", border: "1px solid #e8eaed", borderRadius: 12, padding: 20 }}>
+        <div id="conectar" style={{ background: "var(--surface)", border: "1px solid var(--border-2)", borderRadius: 12, padding: 20, scrollMarginTop: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
             <span style={{ fontSize: 16 }}>🔗</span>
-            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#111" }}>Conectar plataformas</h2>
+            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "var(--text)" }}>Conectar plataformas</h2>
           </div>
-          <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
+          <p style={{ fontSize: 13, color: "var(--text-2)", marginBottom: 16 }}>
             Autorize o ReportFlow a ler as contas de anúncios deste cliente.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -168,25 +161,26 @@ export default async function ClientPage({ params, searchParams }: ClientPagePro
               <span>🟢</span> Conectar Google Ads
             </a>
             <a
-              className={`button meta ${readiness.meta ? "" : "disabled"}`}
-              href={readiness.meta ? `/api/integrations/meta/start?clientId=${client.id}` : undefined}
+              className={`button meta ${metaEnabled ? "" : "disabled"}`}
+              href={metaEnabled ? `/api/integrations/meta/start?clientId=${client.id}` : undefined}
+              aria-disabled={!metaEnabled}
               style={{ textAlign: "center", fontSize: 13 }}
             >
-              <span>🔵</span> Conectar Meta Ads
+              <span>🔵</span> {metaEnabled ? "Conectar Meta Ads" : "Meta Ads (em breve)"}
             </a>
           </div>
 
           {/* Integrações ativas */}
           {client.integrations.length > 0 && (
-            <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid #f0f0f0" }}>
-              <p style={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
+            <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--border)" }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: "var(--text-2)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
                 Conectadas
               </p>
               {client.integrations.map((integration) => (
-                <div key={integration.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #f9f9f9" }}>
+                <div key={integration.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "#111" }}>{integration.accountName}</div>
-                    <div style={{ fontSize: 11, color: "#9ca3af" }}>{integration.platform}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{integration.accountName}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-2)" }}>{integration.platform}</div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <span className={integration.active ? "status" : "status inactive"}>
@@ -207,17 +201,17 @@ export default async function ClientPage({ params, searchParams }: ClientPagePro
       </div>
 
       {/* Histórico de relatórios */}
-      <div style={{ background: "#fff", border: "1px solid #e8eaed", borderRadius: 12, overflow: "hidden" }}>
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid #f0f0f0", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fafafa" }}>
+      <div style={{ background: "var(--surface)", border: "1px solid var(--border-2)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--surface-2)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 16 }}>📋</span>
-            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#111" }}>Histórico de relatórios</h2>
+            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "var(--text)" }}>Histórico de relatórios</h2>
           </div>
-          <span style={{ fontSize: 12, color: "#9ca3af" }}>{client.reports.length} relatório(s)</span>
+          <span style={{ fontSize: 12, color: "var(--text-2)" }}>{client.reports.length} relatório(s)</span>
         </div>
 
         {client.reports.length === 0 ? (
-          <div style={{ padding: 40, textAlign: "center", color: "#9ca3af" }}>
+          <div style={{ padding: 40, textAlign: "center", color: "var(--text-2)" }}>
             <div style={{ fontSize: 32, marginBottom: 8 }}>📄</div>
             <p style={{ margin: 0, fontSize: 14 }}>Nenhum relatório gerado ainda.</p>
             <p style={{ margin: "4px 0 0", fontSize: 12 }}>Use o formulário acima para gerar o primeiro.</p>
@@ -229,24 +223,34 @@ export default async function ClientPage({ params, searchParams }: ClientPagePro
               return (
                 <div key={report.id} style={{
                   padding: "16px 20px",
-                  borderBottom: i < client.reports.length - 1 ? "1px solid #f5f5f5" : "none",
+                  borderBottom: i < client.reports.length - 1 ? "1px solid var(--border)" : "none",
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: "#111" }}>
-                        {formatDate(report.periodStart)} — {formatDate(report.periodEnd)}
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>
+                        {formatPeriodDate(report.periodStart)} — {formatPeriodDate(report.periodEnd)}
                       </div>
-                      <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>
-                        Leads: {data.leads ?? 0} · CPL: {formatCurrency(Number(data.cpl ?? 0))} · ROAS: {data.roas ?? "—"}
+                      <div style={{ fontSize: 12, color: "var(--text-2)", marginTop: 2 }}>
+                        Leads: {data.leads ?? 0} · CPL: {formatCurrency(Number(data.cpl ?? 0))} · Investimento: {formatCurrency(Number(data.spend ?? 0))}
                       </div>
                     </div>
-                    <span className="status" style={{ fontSize: 11 }}>{report.status}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <Link href={`/reports/${report.id}`} style={{ fontSize: 12, fontWeight: 600, color: "var(--brand-light)" }}>
+                        Abrir
+                      </Link>
+                      <a href={`/api/reports/${report.id}/pdf`} style={{ fontSize: 12, fontWeight: 600, color: "var(--brand-light)" }}>
+                        Baixar PDF
+                      </a>
+                      <span className={reportStatusClass(report.status)} style={{ fontSize: 11 }}>
+                        {reportStatusLabel(report.status)}
+                      </span>
+                    </div>
                   </div>
                   {report.aiAnalysis && (
                     <div style={{
-                      background: "#f8fffe", border: "1px solid #d1fae5",
+                      background: "var(--green-soft)", border: "1px solid rgba(74, 222, 128, 0.2)",
                       borderRadius: 8, padding: "10px 14px",
-                      fontSize: 13, color: "#374151", lineHeight: 1.6,
+                      fontSize: 13, color: "var(--text)", lineHeight: 1.6, whiteSpace: "pre-wrap",
                     }}>
                       {report.aiAnalysis}
                     </div>

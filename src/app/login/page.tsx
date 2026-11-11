@@ -69,48 +69,24 @@ export default async function LoginPage() {
             fontWeight: 700, lineHeight: 1.2, marginBottom: 16,
           }}>
             Relatórios profissionais<br />
-            <span style={{ color: "#4ade80" }}>em 1 minuto</span>
+            <span style={{ color: "#4ade80" }}>em minutos</span>
           </h2>
           <p style={{ color: "#888", fontSize: 16, lineHeight: 1.6, maxWidth: 400 }}>
-            Conecte Google Ads e Meta Ads dos seus clientes e gere análises completas com IA automaticamente.
+            Conecte o Google Ads dos seus clientes (Meta Ads em breve) e gere análises completas com IA automaticamente.
           </p>
 
           {/* Métricas */}
           <div style={{ display: "flex", gap: 24, marginTop: 32, flexWrap: "wrap" }}>
             {[
-              { value: "10x", label: "mais rápido" },
               { value: "IA", label: "análise automática" },
-              { value: "2", label: "plataformas integradas" },
+              { value: "PDF", label: "pronto para enviar" },
+              { value: "14 dias", label: "de teste grátis" },
             ].map(m => (
               <div key={m.label}>
                 <div style={{ color: "#4ade80", fontSize: 24, fontWeight: 700 }}>{m.value}</div>
                 <div style={{ color: "#666", fontSize: 12 }}>{m.label}</div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Depoimento */}
-        <div style={{
-          position: "relative",
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderRadius: 12, padding: "16px 20px",
-        }}>
-          <p style={{ color: "#ccc", fontSize: 14, lineHeight: 1.6, marginBottom: 10 }}>
-            "Antes eu passava a última semana do mês montando relatório. Agora fecho tudo em uma tarde."
-          </p>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: "50%",
-              background: "linear-gradient(135deg, #2d6a4f, #185FA5)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 12, fontWeight: 700, color: "#fff",
-            }}>C</div>
-            <div>
-              <div style={{ color: "#fff", fontSize: 13, fontWeight: 500 }}>Carlos M.</div>
-              <div style={{ color: "#666", fontSize: 11 }}>Sócio, Agência Pulse</div>
-            </div>
           </div>
         </div>
       </div>
@@ -138,10 +114,10 @@ export default async function LoginPage() {
           </div>
 
           <h1 style={{ color: "#fff", fontSize: 28, fontWeight: 700, marginBottom: 8 }}>
-            Bem-vindo de volta
+            Entre ou crie sua conta
           </h1>
           <p style={{ color: "#666", fontSize: 15, marginBottom: 32, lineHeight: 1.5 }}>
-            Entre na sua conta para acessar o painel da sua agência.
+            Use sua conta Google. Contas novas ganham 14 dias de teste grátis, sem cartão de crédito.
           </p>
 
           {/* Botão Google */}
@@ -165,28 +141,11 @@ export default async function LoginPage() {
             </button>
           </form>
 
-          <div style={{ margin: "24px 0", display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ flex: 1, height: 1, background: "#1e1e1e" }} />
-            <span style={{ color: "#444", fontSize: 12 }}>ou</span>
-            <div style={{ flex: 1, height: 1, background: "#1e1e1e" }} />
-          </div>
-
-          {/* Criar conta */}
-          <a href="/pricing" style={{
-            display: "block", width: "100%", padding: "14px 20px",
-            background: "transparent", color: "#fff",
-            border: "1px solid #2a2a2a", borderRadius: 10,
-            fontSize: 15, fontWeight: 500, textAlign: "center",
-            textDecoration: "none", transition: "border-color 0.15s",
-          }}>
-            Criar conta grátis — 14 dias
-          </a>
-
           <p style={{ color: "#444", fontSize: 12, textAlign: "center", marginTop: 24, lineHeight: 1.6 }}>
-            Ao entrar, você concorda com nossos{" "}
-            <a href="#" style={{ color: "#666", textDecoration: "underline" }}>Termos de uso</a>
+            Ao entrar ou criar sua conta, você concorda com nossos{" "}
+            <a href="/termos" style={{ color: "#666", textDecoration: "underline" }}>Termos de uso</a>
             {" "}e{" "}
-            <a href="#" style={{ color: "#666", textDecoration: "underline" }}>Política de privacidade</a>.
+            <a href="/privacidade" style={{ color: "#666", textDecoration: "underline" }}>Política de privacidade</a>.
           </p>
         </div>
       </div>

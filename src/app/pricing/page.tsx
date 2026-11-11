@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { ACCESS_MESSAGES, type PricingReason } from "@/lib/billing";
 
 const PLANS = [
   {
@@ -12,8 +13,9 @@ const PLANS = [
     popular: false,
     features: [
       "Até 5 clientes",
-      "Google Ads + Meta Ads",
+      "Google Ads (Meta Ads em breve)",
       "Relatórios com IA",
+      "Download em PDF",
       "Histórico completo",
       "Suporte por email",
     ],
@@ -26,12 +28,12 @@ const PLANS = [
     popular: true,
     features: [
       "Até 20 clientes",
-      "Google Ads + Meta Ads",
+      "Google Ads (Meta Ads em breve)",
       "Relatórios com IA",
-      "Exportação em PDF",
-      "Envio automático por email",
-      "Agendamento mensal",
+      "Download em PDF",
+      "Histórico completo",
       "Suporte prioritário",
+      "Em breve: envio por e-mail e agendamento mensal",
     ],
   },
   {
@@ -42,24 +44,30 @@ const PLANS = [
     popular: false,
     features: [
       "Clientes ilimitados",
-      "Google Ads + Meta Ads",
+      "Google Ads (Meta Ads em breve)",
       "Relatórios com IA",
-      "Exportação em PDF",
-      "Envio automático por email",
-      "Agendamento mensal",
-      "White label (sua logo)",
-      "Multi-usuário",
+      "Download em PDF",
+      "Histórico completo",
       "Suporte dedicado",
+      "Em breve: envio por e-mail, agendamento, white label e multi-usuário",
     ],
   },
 ];
 
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
-  const [canceled, setCanceled] = useState(false);
-useEffect(() => {
-  setCanceled(new URLSearchParams(window.location.search).get("canceled") === "true");
-}, []);
+  const [notice, setNotice] = useState<{ tone: "info" | "warn"; text: string } | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const reason = params.get("reason");
+    if (params.get("canceled") === "true") {
+      // Volta do Stripe sem pagar: não é cancelamento de assinatura.
+      setNotice({ tone: "info", text: "Checkout cancelado. Nenhuma cobrança foi feita." });
+    } else if (reason && reason in ACCESS_MESSAGES) {
+      setNotice({ tone: "warn", text: ACCESS_MESSAGES[reason as PricingReason] });
+    }
+  }, []);
 
   async function handleCheckout(priceId: string, planName: string) {
     setLoading(planName);
@@ -69,6 +77,10 @@ useEffect(() => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ priceId }),
       });
+      if (res.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
@@ -94,20 +106,16 @@ useEffect(() => {
         <Link href="/login" style={{ color: "#888", textDecoration: "none", fontSize: 14 }}>Já tenho conta →</Link>
       </nav>
 
-      {/* Banner de cancelamento */}
-      {canceled && (
-        <div style={{
-          maxWidth: 760, margin: "20px auto 0", padding: "0 32px",
-        }}>
+      {/* Aviso (checkout cancelado, teste vencido, limite de clientes) */}
+      {notice && (
+        <div style={{ maxWidth: 760, margin: "20px auto 0", padding: "0 32px" }}>
           <div style={{
-            background: "#1a0a0a", border: "1px solid #7f1d1d",
+            background: notice.tone === "warn" ? "#1f1a0a" : "#141414",
+            border: `1px solid ${notice.tone === "warn" ? "#7a5c12" : "#2a2a2a"}`,
             borderRadius: 10, padding: "14px 20px",
-            display: "flex", alignItems: "center", gap: 12,
           }}>
-            <span style={{ fontSize: 18 }}>✓</span>
-            <p style={{ color: "#fca5a5", margin: 0, fontSize: 14, fontWeight: 500 }}>
-              Sua assinatura foi cancelada. Você mantém acesso até o fim do período pago.
-              Escolha um plano abaixo para continuar quando quiser.
+            <p style={{ color: notice.tone === "warn" ? "#fbbf24" : "#ccc", margin: 0, fontSize: 14, fontWeight: 500 }}>
+              {notice.text}
             </p>
           </div>
         </div>
@@ -116,7 +124,7 @@ useEffect(() => {
       {/* Header */}
       <div style={{ textAlign: "center", padding: "56px 32px 40px" }}>
         <h1 style={{ fontSize: 44, fontWeight: 700, marginBottom: 12 }}>Planos simples e transparentes</h1>
-        <p style={{ color: "#888", fontSize: 18 }}>Comece grátis por 14 dias. Sem cartão de crédito.</p>
+        <p style={{ color: "#888", fontSize: 18 }}>Teste grátis por 14 dias, sem cartão. Depois, escolha o plano que cabe na sua carteira de clientes.</p>
       </div>
 
       {/* Plans */}
@@ -180,7 +188,7 @@ useEffect(() => {
                 opacity: loading === plan.name ? 0.6 : 1,
               }}
             >
-              {loading === plan.name ? "Aguarde..." : "Começar grátis — 14 dias"}
+              {loading === plan.name ? "Aguarde..." : `Assinar ${plan.name}`}
             </button>
           </div>
         ))}
@@ -191,8 +199,8 @@ useEffect(() => {
         <h2 style={{ fontSize: 28, fontWeight: 700, textAlign: "center", marginBottom: 32 }}>Perguntas frequentes</h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
           {[
-            { q: "Preciso de cartão de crédito para o trial?", a: "Não. Você tem 14 dias grátis sem precisar cadastrar cartão de crédito." },
-            { q: "Posso cancelar a qualquer momento?", a: "Sim. Sem multa ou fidelidade. Cancele com 1 clique no painel." },
+            { q: "Preciso de cartão de crédito para o teste?", a: "Não. Entre com sua conta Google e use por 14 dias, com até 3 clientes, sem cadastrar cartão. Quando o teste acabar, você escolhe um plano para continuar criando relatórios. O que você já gerou continua disponível para consulta." },
+            { q: "Posso cancelar a qualquer momento?", a: "Sim, sem multa ou fidelidade. O cancelamento é feito em Configurações, no portal de cobrança." },
             { q: "O que acontece se eu atingir o limite de clientes?", a: "Você pode fazer upgrade para um plano maior a qualquer momento." },
             { q: "Os relatórios ficam salvos?", a: "Sim. Todo histórico de relatórios gerados fica salvo na plataforma." },
           ].map(item => (
@@ -207,6 +215,10 @@ useEffect(() => {
       {/* Footer */}
       <footer style={{ borderTop: "1px solid #1a1a1a", padding: "20px 32px", textAlign: "center" }}>
         <Link href="/" style={{ color: "#555", textDecoration: "none", fontSize: 13 }}>← Voltar ao início</Link>
+        <span style={{ color: "#333", margin: "0 12px" }}>·</span>
+        <Link href="/termos" style={{ color: "#555", textDecoration: "none", fontSize: 13 }}>Termos de uso</Link>
+        <span style={{ color: "#333", margin: "0 12px" }}>·</span>
+        <Link href="/privacidade" style={{ color: "#555", textDecoration: "none", fontSize: 13 }}>Política de privacidade</Link>
       </footer>
     </div>
   );

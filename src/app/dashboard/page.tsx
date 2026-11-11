@@ -1,22 +1,17 @@
 import Link from "next/link";
 import { AppShell } from "@/app/app-shell";
+import { BillingNotice } from "@/app/billing-notice";
 import { prisma } from "@/lib/db/prisma";
-import { formatCurrency, formatDate, requireAgency } from "@/lib/app-data";
-
-type ReportMetrics = {
-  spend?: number;
-  revenue?: number;
-  leads?: number;
-};
-
-function parseMetrics(data: string | null): ReportMetrics {
-  if (!data) return {};
-  try {
-    return JSON.parse(data) as ReportMetrics;
-  } catch {
-    return {};
-  }
-}
+import { getAccessState } from "@/lib/billing";
+import {
+  HOURS_SAVED_PER_REPORT,
+  formatDate,
+  formatPeriodDate,
+  reportStatusClass,
+  reportStatusLabel,
+  requireAgency,
+  startOfCurrentMonth,
+} from "@/lib/app-data";
 
 export default async function DashboardPage() {
   const { session, agency } = await requireAgency();
@@ -36,16 +31,16 @@ export default async function DashboardPage() {
     take: 6,
   });
 
-  const totals = reports.reduce(
-    (acc, report) => {
-      const data = parseMetrics(report.data);
-      acc.spend += Number(data.spend ?? 0);
-      acc.revenue += Number(data.revenue ?? 0);
-      acc.leads += Number(data.leads ?? 0);
-      return acc;
-    },
-    { spend: 0, revenue: 0, leads: 0 },
-  );
+  const reportsThisMonth = await prisma.report.count({
+    where: { client: { agencyId: agency.id }, createdAt: { gte: startOfCurrentMonth() } },
+  });
+
+  const access = getAccessState(agency, { email: session.user.email });
+  const activeClients = clients.filter((client) => client.active);
+  const clientsWithoutIntegration = activeClients.filter(
+    (client) => !client.integrations.some((integration) => integration.active),
+  ).length;
+  const hoursSaved = reportsThisMonth * HOURS_SAVED_PER_REPORT;
 
   return (
     <AppShell agencyName={agency.name} userEmail={session.user.email}>
@@ -57,18 +52,26 @@ export default async function DashboardPage() {
         <Link className="button" href="/clients/new">Novo cliente</Link>
       </div>
 
-      <section className="grid cols-3" style={{ marginBottom: 16 }}>
+      <BillingNotice access={access} />
+
+      <section className="grid cols-4" style={{ marginBottom: 16 }}>
         <article className="card metric">
           <span>Clientes ativos</span>
-          <strong>{clients.filter((client) => client.active).length}</strong>
+          <strong>{activeClients.length}</strong>
         </article>
         <article className="card metric">
-          <span>Receita atribuída</span>
-          <strong>{formatCurrency(totals.revenue)}</strong>
+          <span>Relatórios no mês</span>
+          <strong>{reportsThisMonth}</strong>
         </article>
         <article className="card metric">
-          <span>Leads medidos</span>
-          <strong>{totals.leads}</strong>
+          <span>Sem integração</span>
+          <strong>{clientsWithoutIntegration}</strong>
+          <small className="muted">clientes ativos sem conta conectada</small>
+        </article>
+        <article className="card metric">
+          <span>Horas economizadas</span>
+          <strong>{hoursSaved}h</strong>
+          <small className="muted">estimativa: {HOURS_SAVED_PER_REPORT}h por relatório no mês</small>
         </article>
       </section>
 
@@ -95,29 +98,46 @@ export default async function DashboardPage() {
                   <th>Cliente</th>
                   <th>Integrações</th>
                   <th>Status</th>
+                  <th>Ação</th>
                 </tr>
               </thead>
               <tbody>
-                {clients.map((client) => (
-                  <tr key={client.id}>
-                    <td>
-                      <Link href={`/clients/${client.id}`} className="client-name-link">
-                        {client.name}
-                      </Link>
-                      <p className="muted">
-                        {client.reports[0]
-                          ? `Último relatório em ${formatDate(client.reports[0].createdAt)}`
-                          : "Sem relatórios"}
-                      </p>
-                    </td>
-                    <td>{client.integrations.length}</td>
-                    <td>
-                      <span className={client.active ? "status" : "status inactive"}>
-                        {client.active ? "Ativo" : "Pausado"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {clients.map((client) => {
+                  const activeIntegrations = client.integrations.filter((integration) => integration.active).length;
+                  const hasIntegration = activeIntegrations > 0;
+                  const statusLabel = !client.active ? "Pausado" : hasIntegration ? "Ativo" : "Sem integração";
+                  const statusClass = client.active && hasIntegration ? "status" : "status inactive";
+
+                  return (
+                    <tr key={client.id}>
+                      <td>
+                        <Link href={`/clients/${client.id}`} className="client-name-link">
+                          {client.name}
+                        </Link>
+                        <p className="muted">
+                          {client.reports[0]
+                            ? `Último relatório em ${formatDate(client.reports[0].createdAt)}`
+                            : "Sem relatórios"}
+                        </p>
+                      </td>
+                      <td>{activeIntegrations}</td>
+                      <td>
+                        <span className={statusClass}>{statusLabel}</span>
+                      </td>
+                      <td>
+                        {hasIntegration ? (
+                          <Link className="button small" href={`/clients/${client.id}#gerar-relatorio`}>
+                            Gerar relatório
+                          </Link>
+                        ) : (
+                          <Link className="button small secondary" href={`/clients/${client.id}#conectar`}>
+                            Conectar conta
+                          </Link>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
@@ -138,7 +158,9 @@ export default async function DashboardPage() {
                 <tr>
                   <th>Cliente</th>
                   <th>Período</th>
+                  <th>Criado em</th>
                   <th>Status</th>
+                  <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -146,9 +168,22 @@ export default async function DashboardPage() {
                   <tr key={report.id}>
                     <td>{report.client.name}</td>
                     <td>
-                      {formatDate(report.periodStart)} — {formatDate(report.periodEnd)}
+                      {formatPeriodDate(report.periodStart)} — {formatPeriodDate(report.periodEnd)}
                     </td>
-                    <td><span className="status">{report.status}</span></td>
+                    <td>{formatDate(report.createdAt)}</td>
+                    <td>
+                      <span className={reportStatusClass(report.status)}>{reportStatusLabel(report.status)}</span>
+                    </td>
+                    <td>
+                      <div className="table-actions">
+                        <Link className="button small secondary" href={`/reports/${report.id}`}>
+                          Abrir
+                        </Link>
+                        <a className="button small secondary" href={`/api/reports/${report.id}/pdf`}>
+                          Baixar PDF
+                        </a>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

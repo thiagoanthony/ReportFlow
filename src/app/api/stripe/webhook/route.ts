@@ -22,16 +22,18 @@ export async function POST(req: NextRequest) {
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
-      const userEmail = session.customer_email;
+      const agencyId = session.client_reference_id;
+      const userEmail = session.customer_email ?? session.customer_details?.email;
       const subscriptionId = session.subscription as string;
 
-      if (userEmail && subscriptionId) {
+      if ((agencyId || userEmail) && subscriptionId) {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         const priceId = subscription.items.data[0]?.price.id;
         const plan = getPlanFromPriceId(priceId);
 
         await prisma.agency.updateMany({
-          where: { user: { email: userEmail } },
+          // Preferimos o id da agência (enviado no checkout); o e-mail fica como alternativa.
+          where: agencyId ? { id: agencyId } : { user: { email: userEmail! } },
           data: {
             plan,
             stripeCustomerId: session.customer as string,
